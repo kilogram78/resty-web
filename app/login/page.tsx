@@ -1,6 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+
+export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -10,11 +12,19 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
+  
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+  
+  const supabase = mounted ? createClient() : null
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!supabase) return
+    
     setError(null)
     setLoading(true)
 
@@ -30,6 +40,16 @@ export default function LoginPage() {
       router.push('/dashboard')
       router.refresh()
     }
+  }
+  
+  if (!mounted) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+        <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-lg">
+          <div className="text-center">Loading...</div>
+        </div>
+      </div>
+    )
   }
 
   return (
